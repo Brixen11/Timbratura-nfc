@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0f1117"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>Timbratura</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #181c25;
+      --border: rgba(255,255,255,0.08);
+      --accent: #00e5a0;
+      --accent-dim: rgba(0,229,160,0.12);
+      --accent-mid: rgba(0,229,160,0.35);
+      --warn: #ff6b4a;
+      --warn-dim: rgba(255,107,74,0.12);
+      --pause: #ffcd3c;
+      --pause-dim: rgba(255,205,60,0.12);
+      --text: #f0f2f5;
+      --muted: rgba(240,242,245,0.45);
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-display);
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* ── Layout ── */
+    #app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2rem 1.5rem 1.5rem;
+      position: relative;
+    }
+
+    /* ── Background grid ── */
+    #app::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* ── Header ── */
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    #clock {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── NFC ring ── */
+    .nfc-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .ring-outer {
+      position: relative;
+      width: 220px; height: 220px;
+    }
+
+    .ring-outer svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+    }
+
+    .ring-pulse {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      animation: pulse 2.5s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 var(--accent-mid); }
+      70%  { box-shadow: 0 0 0 40px rgba(0,229,160,0); }
+      100% { box-shadow: 0 0 0 0 rgba(0,229,160,0); }
+    }
+
+    .ring-inner {
+      position: absolute;
+      inset: 20px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nfc-icon {
+      width: 64px; height: 64px;
+      opacity: 0.9;
+      transition: transform 0.3s ease;
+    }
+
+    .nfc-icon path { fill: var(--accent); }
+
+    .ring-label {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Status / feedback ── */
+    #status-card {
+      width: 100%;
+      max-width: 380px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 1.25rem 1.5rem;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.4s, background 0.4s;
+    }
+
+    #status-card.ok    { border-color: var(--accent); background: var(--accent-dim); }
+    #status-card.warn  { border-color: var(--warn);   background: var(--warn-dim); }
+    #status-card.pause { border-color: var(--pause);  background: var(--pause-dim); }
+    #status-card.error { border-color: var(--warn);   background: var(--warn-dim); }
+
+    .status-name {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .status-type {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .status-idle { color: var(--muted); font-size: 14px; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 22px; height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer ── */
+    .footer {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #nfc-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .dot.active { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .dot.error  { background: var(--warn); }
+
+    /* ── Settings overlay ── */
+    #settings-btn {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer;
+      border-radius: 8px; padding: 6px 10px;
+      font-family: var(--font-mono); font-size: 12px;
+      transition: border-color 0.2s, color 0.2s;
+      z-index: 10;
+    }
+    #settings-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    #overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(15,17,23,0.92);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #overlay.open { display: flex; }
+
+    .settings-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      width: min(92vw, 400px);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .settings-box h2 {
+      font-size: 18px; font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.06em; }
+
+    .field input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--accent); }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 0.5rem; }
+
+    .btn {
+      flex: 1; padding: 12px;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #0f1117; }
+    .btn-secondary { background: var(--border); color: var(--text); }
+
+    .hint {
+      font-size: 11px; color: var(--muted);
+      font-family: var(--font-mono);
+      line-height: 1.6;
+      border-left: 2px solid var(--border);
+      padding-left: 10px;
+    }
+
+    /* Animazione successo */
+    @keyframes flash {
+      0%  { transform: scale(1); }
+      20% { transform: scale(1.04); }
+      100%{ transform: scale(1); }
+    }
+    .flash { animation: flash 0.4s ease; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <header class="header">
+    <span class="brand">Timbratura</span>
+    <span id="clock">--:--:--</span>
+  </header>
+
+  <section class="nfc-zone" aria-label="Zona lettura badge NFC">
+    <div class="ring-outer">
+      <div class="ring-pulse"></div>
+      <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="110" cy="110" r="108" stroke="rgba(0,229,160,0.18)" stroke-width="1"/>
+        <circle cx="110" cy="110" r="90"  stroke="rgba(0,229,160,0.10)" stroke-width="1" stroke-dasharray="4 4"/>
+      </svg>
+      <div class="ring-inner">
+        <svg class="nfc-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M8 10C8 8.9 8.9 8 10 8H28V20C28 21.1 27.1 22 26 22H8V10Z"/>
+          <path d="M8 42H26C27.1 42 28 42.9 28 44V56H10C8.9 56 8 55.1 8 54V42Z"/>
+          <path d="M36 8H54C55.1 8 56 8.9 56 10V22H38C36.9 22 36 21.1 36 20V8Z"/>
+          <path d="M38 32C38 28.7 40.7 26 44 26C47.3 26 50 28.7 50 32C50 35.3 47.3 38 44 38"/>
+          <path d="M32 32C32 25.4 37.4 20 44 20C50.6 20 56 25.4 56 32C56 38.6 50.6 44 44 44"/>
+          <path d="M20 38V44H26V56" stroke-width="0" fill="none"/>
+          <rect x="8" y="30" width="20" height="4" rx="2"/>
+        </svg>
+      </div>
+    </div>
+    <p class="ring-label">Avvicina il badge al tablet</p>
+  </section>
+
+  <div id="status-card">
+    <p class="status-idle">In attesa di timbratura…</p>
+  </div>
+
+  <footer class="footer">
+    <span id="nfc-status"><span class="dot" id="dot"></span>NFC non avviato</span>
+  </footer>
+</div>
+
+<button id="settings-btn" onclick="openSettings()" aria-label="Impostazioni">⚙ config</button>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-label="Configurazione">
+  <div class="settings-box">
+    <h2>Configurazione</h2>
+
+    <div class="field">
+      <label>URL APPS SCRIPT (doPost)</label>
+      <input type="url" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec"/>
+    </div>
+
+    <div class="field">
+      <label>TOKEN SEGRETO</label>
+      <input type="password" id="cfg-token" placeholder="es. timbratura2024"/>
+    </div>
+
+    <p class="hint">
+      Incolla l'URL di pubblicazione del tuo Apps Script e il token
+      che configurerai nel codice doPost per autenticare le richieste.
+    </p>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeSettings()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────
+const CFG_URL   = 'ts_url';
+const CFG_TOKEN = 'ts_token';
+
+function getUrl()   { return localStorage.getItem(CFG_URL)   || ''; }
+function getToken() { return localStorage.getItem(CFG_TOKEN) || ''; }
+
+function openSettings() {
+  document.getElementById('cfg-url').value   = getUrl();
+  document.getElementById('cfg-token').value = getToken();
+  document.getElementById('overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('overlay').classList.remove('open');
+}
+function saveSettings() {
+  localStorage.setItem(CFG_URL,   document.getElementById('cfg-url').value.trim());
+  localStorage.setItem(CFG_TOKEN, document.getElementById('cfg-token').value.trim());
+  closeSettings();
+  startNfc();
+}
+
+// ── Orologio ────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('it-IT', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Status card ─────────────────────────────────────────
+function setStatus(type, name, label) {
+  const card = document.getElementById('status-card');
+  card.className = type;
+  card.classList.add('flash');
+  card.innerHTML = name
+    ? `<div class="status-name">${name}</div><div class="status-type">${label}</div>`
+    : `<div class="spinner"></div>`;
+  setTimeout(() => card.classList.remove('flash'), 400);
+  if (type !== '') {
+    setTimeout(() => {
+      card.className = '';
+      card.innerHTML = '<p class="status-idle">In attesa di timbratura…</p>';
+    }, 4000);
+  }
+}
+
+// ── NFC ─────────────────────────────────────────────────
+function setNfcStatus(state, msg) {
+  const dot = document.getElementById('dot');
+  const lbl = document.getElementById('nfc-status');
+  dot.className = 'dot ' + state;
+  lbl.innerHTML = `<span class="dot ${state}"></span>${msg}`;
+}
+
+let nfcReader = null;
+
+async function startNfc() {
+  if (!('NDEFReader' in window)) {
+    setNfcStatus('error', 'Web NFC non supportato (serve Chrome su Android)');
+    return;
+  }
+  if (!getUrl()) {
+    setNfcStatus('error', 'Configura prima l\'URL Apps Script');
+    openSettings();
+    return;
+  }
+  try {
+    nfcReader = new NDEFReader();
+    await nfcReader.scan();
+    setNfcStatus('active', 'NFC attivo — pronto');
+
+    nfcReader.addEventListener('reading', ({ serialNumber }) => {
+      const uid = serialNumber.replace(/:/g, '').toUpperCase();
+      handleTap(uid);
+    });
+
+    nfcReader.addEventListener('readingerror', () => {
+      setNfcStatus('error', 'Errore lettura NFC');
+    });
+
+  } catch (err) {
+    setNfcStatus('error', 'Permesso NFC negato: ' + err.message);
+  }
+}
+
+// ── Gestione timbratura ─────────────────────────────────
+let lastTap = {};   // uid → timestamp ultimo tap (debounce 3s)
+
+async function handleTap(uid) {
+  const now = Date.now();
+  if (lastTap[uid] && now - lastTap[uid] < 3000) return;
+  lastTap[uid] = now;
+
+  setStatus('', '', '');   // mostra spinner
+
+  try {
+    const res = await fetch(getUrl(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: getToken(),
+        uid: uid,
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.ok) {
+      const tipoClass = data.tipo === 'pausa_inizio' || data.tipo === 'pausa_fine'
+        ? 'pause' : data.tipo === 'uscita' ? 'warn' : 'ok';
+      const tipoLabel = {
+        entrata:      '→ ENTRATA',
+        uscita:       '← USCITA',
+        pausa_inizio: '⏸ INIZIO PAUSA',
+        pausa_fine:   '▶ FINE PAUSA'
+      }[data.tipo] || data.tipo.toUpperCase();
+
+      setStatus(tipoClass, data.nome, tipoLabel);
+      vibrate([50, 30, 80]);
+    } else {
+      setStatus('error', 'Badge non riconosciuto', 'UID: ' + uid);
+      vibrate([200]);
+    }
+
+  } catch (err) {
+    setStatus('error', 'Errore connessione', 'Controlla la rete');
+    vibrate([200]);
+  }
+}
+
+function vibrate(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// ── Avvio ────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  if (!getUrl()) {
+    openSettings();
+  } else {
+    startNfc();
+  }
+});
+</script>
+</body>
+</html>
