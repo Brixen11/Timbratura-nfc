@@ -335,7 +335,7 @@
     <p class="ring-label">Avvicina il badge al tablet</p>
   </section>
 
-  <div id="status-card">
+  <div id="status-card" onclick="testOutput()">
     <p class="status-idle">In attesa di timbratura…</p>
   </div>
 
@@ -429,6 +429,10 @@ function setNfcStatus(state, msg) {
   lbl.innerHTML = `<span class="dot ${state}"></span>${msg}`;
 }
 
+function testOutput() {
+  setStatus('ok', 'Topo Gigio', '→ ENTRATA');
+}
+
 let nfcReader = null;
 
 async function startNfc() {
@@ -483,11 +487,6 @@ async function handleTap(uid) {
 
     const data = await res.json();
 
-    //DEBUG
-    data.ok = true;
-    data.tipo = 'entrata';
-    data.nome = 'Topo Gigio';
-
     if (data.ok) {
       const tipoClass = data.tipo === 'pausa_inizio' || data.tipo === 'pausa_fine'
         ? 'pause' : data.tipo === 'uscita' ? 'warn' : 'ok';
@@ -504,6 +503,8 @@ async function handleTap(uid) {
       setStatus('error', 'Badge non riconosciuto', 'UID: ' + uid);
       //vibrate([200]);
     }
+
+    testOutput();
 
   } catch (err) {
     setStatus('error', 'Errore connessione', 'Controlla la rete');
