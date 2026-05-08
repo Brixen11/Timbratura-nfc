@@ -504,12 +504,12 @@ async function handleTap(uid) {
       //vibrate([200]);
     }
 
-    testOutput();
-
   } catch (err) {
-    setStatus('error', 'Errore connessione', 'Controlla la rete');
+    //setStatus('error', 'Errore connessione', 'Controlla la rete');
+    testOutput();
     //vibrate([200]);
   }
+
 }
 
 function vibrate(pattern) {
