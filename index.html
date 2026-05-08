@@ -483,6 +483,11 @@ async function handleTap(uid) {
 
     const data = await res.json();
 
+    //DEBUG
+    data.ok = true;
+    data.tipo = 'entrata';
+    data.nome = 'Topo Gigio';
+
     if (data.ok) {
       const tipoClass = data.tipo === 'pausa_inizio' || data.tipo === 'pausa_fine'
         ? 'pause' : data.tipo === 'uscita' ? 'warn' : 'ok';
@@ -494,15 +499,15 @@ async function handleTap(uid) {
       }[data.tipo] || data.tipo.toUpperCase();
 
       setStatus(tipoClass, data.nome, tipoLabel);
-      vibrate([50, 30, 80]);
+      //vibrate([50, 30, 80]);
     } else {
       setStatus('error', 'Badge non riconosciuto', 'UID: ' + uid);
-      vibrate([200]);
+      //vibrate([200]);
     }
 
   } catch (err) {
     setStatus('error', 'Errore connessione', 'Controlla la rete');
-    vibrate([200]);
+    //vibrate([200]);
   }
 }
 
