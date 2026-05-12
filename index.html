@@ -11,6 +11,7 @@
   <link rel="manifest" href="manifest.json"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -130,8 +131,9 @@
     }
 
     .nfc-icon {
-      width: 64px; height: 64px;
-      opacity: 0.9;
+      font-size: 64px;
+      color: var(--accent);
+      line-height: 1;
       transition: transform 0.3s ease;
     }
 
@@ -321,15 +323,7 @@
         <circle cx="110" cy="110" r="90"  stroke="rgba(0,229,160,0.10)" stroke-width="1" stroke-dasharray="4 4"/>
       </svg>
       <div class="ring-inner">
-        <svg class="nfc-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M8 10C8 8.9 8.9 8 10 8H28V20C28 21.1 27.1 22 26 22H8V10Z"/>
-          <path d="M8 42H26C27.1 42 28 42.9 28 44V56H10C8.9 56 8 55.1 8 54V42Z"/>
-          <path d="M36 8H54C55.1 8 56 8.9 56 10V22H38C36.9 22 36 21.1 36 20V8Z"/>
-          <path d="M38 32C38 28.7 40.7 26 44 26C47.3 26 50 28.7 50 32C50 35.3 47.3 38 44 38"/>
-          <path d="M32 32C32 25.4 37.4 20 44 20C50.6 20 56 25.4 56 32C56 38.6 50.6 44 44 44"/>
-          <path d="M20 38V44H26V56" stroke-width="0" fill="none"/>
-          <rect x="8" y="30" width="20" height="4" rx="2"/>
-        </svg>
+        <i class="fa-regular fa-id-badge nfc-icon" aria-hidden="true"></i>
       </div>
     </div>
     <p class="ring-label">Avvicina il badge al tablet</p>
