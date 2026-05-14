@@ -423,8 +423,12 @@ function setNfcStatus(state, msg) {
   lbl.innerHTML = `<span class="dot ${state}"></span>${msg}`;
 }
 
-function testOutput() {
-  setStatus('ok', 'Topo Gigio', '→ ENTRATA');
+function testOutput(uid) {
+  if (uid === 'SC000004') {
+    setStatus('error', 'Topo Gigio', '→ ENTRATA');
+  } else {
+    setStatus('ok', 'Badge non riconosciuto', 'RETRY');
+  }
 }
 
 let nfcReader = null;
@@ -500,7 +504,7 @@ async function handleTap(uid) {
 
   } catch (err) {
     //setStatus('error', 'Errore connessione', 'Controlla la rete');
-    testOutput();
+    testOutput(uid);
     //vibrate([200]);
   }
 
