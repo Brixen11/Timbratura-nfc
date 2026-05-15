@@ -344,10 +344,10 @@
   <div class="settings-box">
     <h2>Configurazione</h2>
 
-    <div class="field">
+    <!-- <div class="field">
       <label>URL APPS SCRIPT (doPost)</label>
       <input type="url" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec"/>
-    </div>
+    </div> -->
 
     <div class="field">
       <label>TOKEN SEGRETO</label>
@@ -368,7 +368,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const CFG_URL   = 'ts_url';
+const CFG_URL   = 'https://script.google.com/macros/s/AKfycbx3Ku5UWuIqytWfFpguQITznyV8HBQ-Kc0iyrJVBkfJ/dev';
 const CFG_TOKEN = 'ts_token';
 
 function getUrl()   { return localStorage.getItem(CFG_URL)   || ''; }
@@ -383,7 +383,7 @@ function closeSettings() {
   document.getElementById('overlay').classList.remove('open');
 }
 function saveSettings() {
-  localStorage.setItem(CFG_URL,   document.getElementById('cfg-url').value.trim());
+  //localStorage.setItem(CFG_URL,   document.getElementById('cfg-url').value.trim());
   localStorage.setItem(CFG_TOKEN, document.getElementById('cfg-token').value.trim());
   closeSettings();
   startNfc();
@@ -477,6 +477,7 @@ async function handleTap(uid) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        type: 'timbratura',
         token: getToken(),
         uid: uid,
         timestamp: new Date().toISOString()
