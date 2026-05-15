@@ -345,10 +345,10 @@
   <div class="settings-box">
     <h2>Configurazione</h2>
 
-    <!-- <div class="field">
+    <div class="field">
       <label>URL APPS SCRIPT (doPost)</label>
       <input type="url" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec"/>
-    </div> -->
+    </div>
 
     <div class="field">
       <label>TOKEN SEGRETO</label>
@@ -369,14 +369,14 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const CFG_URL   = 'https://script.google.com/macros/s/AKfycbx3Ku5UWuIqytWfFpguQITznyV8HBQ-Kc0iyrJVBkfJ/dev';
+const CFG_URL   = 'ts_url';
 const CFG_TOKEN = 'ts_token';
 
 function getUrl()   { return localStorage.getItem(CFG_URL)   || ''; }
 function getToken() { return localStorage.getItem(CFG_TOKEN) || ''; }
 
 function openSettings() {
-  //document.getElementById('cfg-url').value   = getUrl();
+  document.getElementById('cfg-url').value   = getUrl();
   document.getElementById('cfg-token').value = getToken();
   document.getElementById('overlay').classList.add('open');
 }
@@ -384,7 +384,7 @@ function closeSettings() {
   document.getElementById('overlay').classList.remove('open');
 }
 function saveSettings() {
-  //localStorage.setItem(CFG_URL,   document.getElementById('cfg-url').value.trim());
+  localStorage.setItem(CFG_URL,   document.getElementById('cfg-url').value.trim());
   localStorage.setItem(CFG_TOKEN, document.getElementById('cfg-token').value.trim());
   closeSettings();
   startNfc();
