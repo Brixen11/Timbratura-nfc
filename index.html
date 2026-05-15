@@ -312,7 +312,7 @@
 
 <div id="app">
   <header class="header">
-    <span class="brand">Timbratura v0.1</span>
+    <span class="brand">Timbratura v0.2</span>
     <span id="clock">--:--:--</span>
   </header>
 
@@ -445,6 +445,7 @@ async function startNfc() {
     return;
   }
   try {
+    setNfcStatus('error', 'NFC in attivazione');
     nfcReader = new NDEFReader();
     await nfcReader.scan();
     setNfcStatus('active', 'NFC attivo — pronto');
